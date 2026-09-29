@@ -1,5 +1,8 @@
 # WEMEET — Fair Group Meetup & Midpoint Decision App
 
+> 🌐 **Live Cloud Deployment**: [https://wemeet-w6j3.onrender.com](https://wemeet-w6j3.onrender.com)  
+> 📦 **GitHub Repository**: [https://github.com/Kiris-02/wemeet](https://github.com/Kiris-02/wemeet)
+
 WEMEET is a mobile-first web application designed for friends in Ho Chi Minh City to find a fair, equal-convenience meetup spot based on starting districts, travel modes, structured vibe/budget preferences, and collaborative voting.
 
 ---
