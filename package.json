@@ -1,0 +1,23 @@
+{
+  "name": "wemeet",
+  "version": "1.0.0",
+  "description": "WEMEET — Fair Group Meetup & Midpoint Decision App for Ho Chi Minh City",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node tests/wemeet.test.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.0"
+  },
+  "keywords": [
+    "wemeet",
+    "group-hangout",
+    "midpoint-calculator",
+    "hcmc",
+    "fair-voting"
+  ],
+  "author": "Kiris",
+  "license": "ISC"
+}

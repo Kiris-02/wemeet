@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>WEMEET — Fair Group Meetup & Midpoint Decision App</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Canvas Confetti for Winner Celebration -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Custom App CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-slate-900 min-h-screen flex flex-col items-center justify-start py-4 px-2 select-none">
+
+  <!-- Top Demo Navigator Bar (Quick jump to any of the 10 prototype screens) -->
+  <header class="w-full max-w-5xl mb-4 bg-slate-800/90 backdrop-blur-md rounded-2xl border border-slate-700/60 p-3 shadow-xl">
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-2 px-1">
+      <div class="flex items-center space-x-2">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center text-white font-bold text-sm shadow-md">
+          W
+        </div>
+        <span class="text-white font-bold text-base tracking-wide">WEMEET</span>
+        <span class="text-xs bg-purple-500/20 text-purple-300 border border-purple-500/30 px-2 py-0.5 rounded-full font-medium">10-Screen Prototype</span>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <!-- Frame Mode Toggle -->
+        <button id="toggleFrameBtn" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg border border-slate-600 transition flex items-center gap-1.5">
+          <i class="fa-solid fa-mobile-screen"></i>
+          <span>iPhone Frame</span>
+        </button>
+        <!-- Support Quick Link -->
+        <button onclick="navigateToScreen(9)" class="text-xs bg-purple-600 hover:bg-purple-500 text-white px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-md shadow-purple-900/40">
+          <i class="fa-solid fa-headset"></i>
+          <span>Support & Help</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 10 Screen Selector Pills -->
+    <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+      <button onclick="navigateToScreen(1)" class="nav-pill px-2.5 py-1 rounded-md bg-purple-600 text-white font-semibold whitespace-nowrap transition" data-screen="1">1. Setup</button>
+      <button onclick="navigateToScreen(2)" class="nav-pill px-2.5 py-1 rounded-md bg-slate-700 hover:bg-slate-600 text-slate-300 whitespace-nowrap transition" data-screen="2">2. Lobby</button>
+      <button onclick="navigateToScreen(3)" class="nav-pill px-2.5 py-1 rounded-md bg-slate-700 hover:bg-slate-600 text-slate-300 whitespace-nowrap transition" data-screen="3">3. Vibe</button>
+      <button onclick="navigateToScreen(4)" class="nav-pill px-2.5 py-1 rounded-md bg-slate-700 hover:bg-slate-600 text-slate-300 whitespace-nowrap transition" data-screen="4">4. Pref Check</button>
+      <button onclick="navigateToScreen(5)" class="nav-pill px-2.5 py-1 rounded-md bg-slate-700 hover:bg-slate-600 text-slate-300 whitespace-nowrap transition" data-screen="5">5. Top 3 Matches</button>
+      <button onclick="navigateToScreen(6)" class="nav-pill px-2.5 py-1 rounded-md bg-slate-700 hover:bg-slate-600 text-slate-300 whitespace-nowrap transition" data-screen="6">6. Place Details</button>
+      <button onclick="navigateToScreen(7)" class="nav-pill px-2.5 py-1 rounded-md bg-slate-700 hover:bg-slate-600 text-slate-300 whitespace-nowrap transition" data-screen="7">7. Group Vote</button>
+      <button onclick="navigateToScreen(8)" class="nav-pill px-2.5 py-1 rounded-md bg-slate-700 hover:bg-slate-600 text-slate-300 whitespace-nowrap transition" data-screen="8">8. Winner</button>
+      <button onclick="navigateToScreen(9)" class="nav-pill px-2.5 py-1 rounded-md bg-slate-700 hover:bg-slate-600 text-slate-300 whitespace-nowrap transition" data-screen="9">9. Support</button>
+      <button onclick="navigateToScreen(10)" class="nav-pill px-2.5 py-1 rounded-md bg-slate-700 hover:bg-slate-600 text-slate-300 whitespace-nowrap transition" data-screen="10">10. Terms</button>
+    </div>
+  </header>
+
+  <!-- Mobile Device Simulation Frame -->
+  <div id="deviceShell" class="mobile-device-shell">
+    
+    <!-- iPhone Top Bezel / Dynamic Island / Status Bar -->
+    <div class="w-full pt-2.5 px-6 pb-1 bg-white/70 backdrop-blur-md flex items-center justify-between text-[11px] font-semibold text-slate-800 z-40 border-b border-slate-100">
+      <span id="statusBarClock">9:41</span>
+      <div class="dynamic-island">
+        <span class="w-2.5 h-2.5 rounded-full bg-slate-800 border border-slate-700"></span>
+        <span class="w-3 h-3 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center">
+          <span class="w-1 h-1 rounded-full bg-indigo-500"></span>
+        </span>
+      </div>
+      <div class="flex items-center space-x-1.5 text-slate-700">
+        <span class="text-[9px] font-bold text-slate-500">5G</span>
+        <i class="fa-solid fa-wifi text-[10px]"></i>
+        <i class="fa-solid fa-battery-full text-xs text-slate-800"></i>
+      </div>
+    </div>
+
+    <!-- MAIN SCROLLABLE APP CONTENT CONTAINER -->
+    <div class="flex-1 overflow-y-auto relative bg-[#F8F9FE]">
+
+      <!-- ========================================== -->
+      <!-- SCREEN 1: LOCATION SETUP (Where WEMEET?)   -->
+      <!-- ========================================== -->
+      <section id="screen-1" class="screen-view active p-4 space-y-4">
+        <!-- Top App Header -->
+        <div class="flex items-center justify-between pb-2">
+          <div class="flex items-center space-x-2">
+            <div class="w-7 h-7 rounded-full bg-purple-600 flex items-center justify-center text-white text-xs shadow-md">
+              <i class="fa-solid fa-location-dot"></i>
+            </div>
+            <h1 class="text-base font-bold text-slate-900 tracking-tight">Where WEMEET?</h1>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button onclick="shareAppPrompt()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-xs transition">
+              <i class="fa-solid fa-arrow-up-from-bracket"></i>
+            </button>
+            <span class="text-[10px] bg-purple-50 text-purple-700 font-bold px-2 py-1 rounded-full border border-purple-200">HOME</span>
+          </div>
+        </div>
+
+        <!-- Location Dropdowns Card -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 space-y-3.5">
+          <!-- District Selector -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-500 tracking-wide uppercase mb-1">Select District / City</label>
+            <div class="relative">
+              <select id="setupDistrict" class="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold rounded-xl px-3.5 py-2.5 pr-8 focus:outline-none focus:ring-2 focus:ring-purple-500 transition">
+                <option value="District 1" selected>District 1</option>
+                <option value="District 3">District 3</option>
+                <option value="District 5">District 5</option>
+                <option value="District 7">District 7</option>
+                <option value="District 10">District 10</option>
+                <option value="Binh Thanh">Binh Thanh District</option>
+                <option value="Phu Nhuan">Phu Nhuan District</option>
+                <option value="Tan Binh">Tan Binh District</option>
+                <option value="Thu Duc">Thu Duc City</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 text-xs">
+                <i class="fa-solid fa-chevron-down"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ward Selector -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-500 tracking-wide uppercase mb-1">Select Sub-Location / Ward</label>
+            <div class="relative">
+              <select id="setupWard" class="w-full appearance-none bg-slate-50 border border-slate-200 text-slate-800 text-xs font-semibold rounded-xl px-3.5 py-2.5 pr-8 focus:outline-none focus:ring-2 focus:ring-purple-500 transition">
+                <option value="Ben Nghe Ward" selected>Ben Nghe Ward</option>
+                <option value="Da Kao Ward">Da Kao Ward</option>
+                <option value="Ben Thanh Ward">Ben Thanh Ward</option>
+                <option value="Nguyen Thai Binh Ward">Nguyen Thai Binh Ward</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400 text-xs">
+                <i class="fa-solid fa-chevron-down"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Specific Street Address -->
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs">
+              <i class="fa-solid fa-magnifying-glass"></i>
+            </div>
+            <input type="text" id="setupAddress" placeholder="Or enter specific street address..." class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 text-slate-800 text-xs rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition placeholder:text-slate-400">
+          </div>
+
+          <!-- GPS Button -->
+          <button id="btnGPS" onclick="simulateGPSLocation()" class="w-full py-2 px-3 border border-purple-200 hover:border-purple-300 bg-purple-50/50 hover:bg-purple-100/50 rounded-xl text-purple-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+            <i class="fa-solid fa-crosshairs text-purple-600"></i>
+            <span>Use Precise GPS Geolocation</span>
+          </button>
+        </div>
+
+        <!-- Preferred Travel Mode -->
+        <div class="space-y-2">
+          <label class="block text-[11px] font-bold text-slate-500 tracking-wide uppercase">My Preferred Travel Mode</label>
+          <div class="grid grid-cols-4 gap-2">
+            <!-- Motorbike -->
+            <button onclick="selectTravelMode('motorbike')" data-mode="motorbike" class="travel-mode-btn active flex flex-col items-center justify-center p-3 rounded-xl border border-purple-500 bg-purple-50 text-purple-700 shadow-sm transition">
+              <i class="fa-solid fa-motorcycle text-lg mb-1"></i>
+              <span class="text-[10px] font-bold">Motorbike</span>
+            </button>
+            <!-- Car / Ride -->
+            <button onclick="selectTravelMode('car')" data-mode="car" class="travel-mode-btn flex flex-col items-center justify-center p-3 rounded-xl border border-slate-200 bg-white text-slate-600 hover:border-purple-300 transition">
+              <i class="fa-solid fa-car-side text-lg mb-1"></i>
+              <span class="text-[10px] font-bold">Car / Ride</span>
+            </button>
+            <!-- Bus -->
+            <button onclick="selectTravelMode('bus')" data-mode="bus" class="travel-mode-btn flex flex-col items-center justify-center p-3 rounded-xl border border-slate-200 bg-white text-slate-600 hover:border-purple-300 transition">
+              <i class="fa-solid fa-bus text-lg mb-1"></i>
+              <span class="text-[10px] font-bold">Bus</span>
+            </button>
+            <!-- Walk -->
+            <button onclick="selectTravelMode('walk')" data-mode="walk" class="travel-mode-btn flex flex-col items-center justify-center p-3 rounded-xl border border-slate-200 bg-white text-slate-600 hover:border-purple-300 transition">
+              <i class="fa-solid fa-person-walking text-lg mb-1"></i>
+              <span class="text-[10px] font-bold">Walk</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="pt-4">
+          <button onclick="saveLocationAndEnterLobby()" class="btn-primary-gradient w-full py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg">
+            <span>Enter Group Lobby</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SCREEN 2: GROUP LOBBY                      -->
+      <!-- ========================================== -->
+      <section id="screen-2" class="screen-view p-4 space-y-4">
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-1">
+          <div class="flex items-center space-x-2">
+            <button onclick="navigateToScreen(1)" class="w-8 h-8 rounded-full bg-white shadow-sm border border-slate-200 text-slate-700 flex items-center justify-center text-xs">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <div>
+              <h1 class="text-sm font-bold text-slate-900 leading-tight">Group Lobby</h1>
+              <span id="lobbyActiveCount" class="text-[10px] text-slate-500 font-medium">4 Members Active</span>
+            </div>
+          </div>
+          <button onclick="openAddMemberModal()" class="text-xs bg-purple-50 text-purple-700 font-bold px-3 py-1.5 rounded-full border border-purple-200 flex items-center gap-1 hover:bg-purple-100 transition">
+            <i class="fa-solid fa-user-plus text-[10px]"></i>
+            <span>Add Member</span>
+          </button>
+        </div>
+
+        <!-- Calculated Central Midpoint Banner -->
+        <div class="bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-500 rounded-2xl p-4 text-white shadow-md relative overflow-hidden">
+          <div class="relative z-10 space-y-1">
+            <div class="flex items-center space-x-1.5 text-xs text-purple-200 font-semibold tracking-wider uppercase">
+              <i class="fa-solid fa-crosshairs text-pink-300"></i>
+              <span>Calculated Central Midpoint</span>
+            </div>
+            <h2 id="midpointDistrictName" class="text-xl font-black tracking-tight text-white">District 1</h2>
+            <p id="midpointDescription" class="text-[11px] text-purple-100 leading-snug">
+              Calculated central geographic midpoint for all 4 active group members.
+            </p>
+          </div>
+          <div class="absolute -right-4 -bottom-6 opacity-15 text-7xl text-white">
+            <i class="fa-solid fa-location-crosshairs"></i>
+          </div>
+        </div>
+
+        <!-- Group Members List -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between px-1">
+            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Group Members</span>
+            <span class="text-[10px] text-purple-600 font-medium">Click members to edit</span>
+          </div>
+
+          <div id="membersContainer" class="space-y-2">
+            <!-- Dynamically populated member cards -->
+          </div>
+        </div>
+
+        <!-- Bottom Action -->
+        <div class="pt-2">
+          <button onclick="navigateToScreen(3)" class="btn-primary-gradient w-full py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg">
+            <span>Set Vibe & Preferences</span>
+            <i class="fa-solid fa-sliders"></i>
+          </button>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SCREEN 3: PREFERENCES (What's the vibe?)   -->
+      <!-- ========================================== -->
+      <section id="screen-3" class="screen-view p-4 space-y-4">
+        <!-- Header -->
+        <div class="flex items-center space-x-2 pb-1">
+          <button onclick="navigateToScreen(2)" class="w-8 h-8 rounded-full bg-white shadow-sm border border-slate-200 text-slate-700 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <div>
+            <h1 class="text-sm font-bold text-slate-900 leading-tight">What's the vibe?</h1>
+            <p class="text-[11px] text-slate-500">Filter places according to your group's mood</p>
+          </div>
+        </div>
+
+        <!-- Categories -->
+        <div class="space-y-2">
+          <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Category</span>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="togglePreference('category', 'coffee', this)" class="pref-chip active p-3 rounded-xl text-left flex items-center space-x-2.5">
+              <span class="text-base chip-icon">☕</span>
+              <span class="text-xs font-bold">Coffee & Tea</span>
+            </button>
+            <button onclick="togglePreference('category', 'food', this)" class="pref-chip p-3 rounded-xl text-left flex items-center space-x-2.5">
+              <span class="text-base chip-icon">🍽️</span>
+              <span class="text-xs font-bold">Food & Meals</span>
+            </button>
+            <button onclick="togglePreference('category', 'sweets', this)" class="pref-chip active p-3 rounded-xl text-left flex items-center space-x-2.5">
+              <span class="text-base chip-icon">🍦</span>
+              <span class="text-xs font-bold">Desserts & Sweets</span>
+            </button>
+            <button onclick="togglePreference('category', 'mall', this)" class="pref-chip p-3 rounded-xl text-left flex items-center space-x-2.5">
+              <span class="text-base chip-icon">🏬</span>
+              <span class="text-xs font-bold">Mall / Complex</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Primary Purpose -->
+        <div class="space-y-2">
+          <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Primary Purpose</span>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="togglePreference('purpose', 'work', this)" class="pref-chip p-3 rounded-xl text-left flex items-center space-x-2.5">
+              <span class="text-base chip-icon">💻</span>
+              <span class="text-xs font-bold">Work / Study</span>
+            </button>
+            <button onclick="togglePreference('purpose', 'photo', this)" class="pref-chip p-3 rounded-xl text-left flex items-center space-x-2.5">
+              <span class="text-base chip-icon">📸</span>
+              <span class="text-xs font-bold">Photo Check-in</span>
+            </button>
+            <button onclick="togglePreference('purpose', 'date', this)" class="pref-chip active p-3 rounded-xl text-left flex items-center space-x-2.5">
+              <span class="text-base chip-icon">💖</span>
+              <span class="text-xs font-bold">Date / Cozy</span>
+            </button>
+            <button onclick="togglePreference('purpose', 'fun', this)" class="pref-chip p-3 rounded-xl text-left flex items-center space-x-2.5">
+              <span class="text-base chip-icon">🎲</span>
+              <span class="text-xs font-bold">Boardgames / Fun</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Budget Per Person -->
+        <div class="space-y-2">
+          <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Budget Per Person (VND)</span>
+          <div class="grid grid-cols-4 gap-1.5">
+            <button onclick="selectBudget('<50k', this)" class="budget-pill p-2 text-center rounded-xl border border-slate-200 bg-white text-slate-700 text-xs font-bold transition">
+              &lt;50k
+            </button>
+            <button onclick="selectBudget('50-70k', this)" class="budget-pill p-2 text-center rounded-xl border border-slate-200 bg-white text-slate-700 text-xs font-bold transition">
+              50-70k
+            </button>
+            <button onclick="selectBudget('70-100k', this)" class="budget-pill active p-2 text-center rounded-xl border border-purple-500 bg-purple-600 text-white text-xs font-bold shadow-sm transition">
+              70-100k
+            </button>
+            <button onclick="selectBudget('>100k', this)" class="budget-pill p-2 text-center rounded-xl border border-slate-200 bg-white text-slate-700 text-xs font-bold transition">
+              &gt;100k
+            </button>
+          </div>
+        </div>
+
+        <!-- Bottom Action -->
+        <div class="pt-4">
+          <button onclick="calculateAndGoToMatches()" class="btn-primary-gradient w-full py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg">
+            <i class="fa-solid fa-bolt"></i>
+            <span>Calculate Fair Matches</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SCREEN 4: PREFERENCE CHECK                 -->
+      <!-- ========================================== -->
+      <section id="screen-4" class="screen-view p-4 space-y-4">
+        <!-- Header -->
+        <div class="flex items-center space-x-2 pb-1">
+          <button onclick="navigateToScreen(3)" class="w-8 h-8 rounded-full bg-white shadow-sm border border-slate-200 text-slate-700 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <div>
+            <h1 class="text-sm font-bold text-slate-900 leading-tight">Review Selected Options</h1>
+            <p class="text-[11px] text-slate-500">Confirming criteria before calculating</p>
+          </div>
+        </div>
+
+        <!-- Summary Card -->
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-purple-200 space-y-3">
+          <div class="flex items-center space-x-2 text-purple-700 text-xs font-bold uppercase tracking-wider">
+            <i class="fa-solid fa-sliders"></i>
+            <span>Active Selection Summary</span>
+          </div>
+
+          <div class="space-y-2 text-xs">
+            <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+              <span class="text-slate-500">Categories</span>
+              <span class="font-bold text-slate-800">☕ Coffee & Tea, 🍦 Desserts</span>
+            </div>
+            <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+              <span class="text-slate-500">Primary Purpose</span>
+              <span class="font-bold text-slate-800">💖 Date / Cozy</span>
+            </div>
+            <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+              <span class="text-slate-500">Budget Range</span>
+              <span class="font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md">70,000 - 100,000 VND</span>
+            </div>
+            <div class="flex justify-between items-center py-1.5">
+              <span class="text-slate-500">Fairness Target</span>
+              <span class="font-bold text-emerald-600"><i class="fa-solid fa-check mr-1"></i>District 1 Centroid</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Button -->
+        <div class="pt-6">
+          <button onclick="calculateAndGoToMatches()" class="btn-primary-gradient w-full py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg">
+            <i class="fa-solid fa-bolt"></i>
+            <span>Calculate Fair Matches</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SCREEN 5: TOP 3 MATCHES                    -->
+      <!-- ========================================== -->
+      <section id="screen-5" class="screen-view p-4 space-y-3.5">
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-1">
+          <div class="flex items-center space-x-2">
+            <button onclick="navigateToScreen(3)" class="w-8 h-8 rounded-full bg-white shadow-sm border border-slate-200 text-slate-700 flex items-center justify-center text-xs">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <div>
+              <h1 class="text-sm font-bold text-slate-900 leading-tight">Top 3 Matches</h1>
+              <p class="text-[10px] text-slate-500">Prioritized in central district area</p>
+            </div>
+          </div>
+          <span class="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-2 py-1 rounded-full border border-emerald-200 flex items-center gap-1">
+            <i class="fa-solid fa-location-dot text-[9px]"></i>
+            <span>Midpoint Optimized</span>
+          </span>
+        </div>
+
+        <!-- Candidate Venues Container -->
+        <div id="matchesContainer" class="space-y-3">
+          <!-- Dynamically populated venue cards -->
+        </div>
+
+        <!-- Sticky Vote Button -->
+        <div class="pt-2 pb-1">
+          <button onclick="navigateToScreen(7)" class="btn-primary-gradient w-full py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg">
+            <span>Proceed to Group Vote</span>
+            <i class="fa-solid fa-check-to-slot"></i>
+          </button>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SCREEN 6: PLACE DETAILS & MENU             -->
+      <!-- ========================================== -->
+      <section id="screen-6" class="screen-view p-4 space-y-3.5">
+        <!-- Header -->
+        <div class="flex items-center space-x-2 pb-1">
+          <button onclick="navigateToScreen(5)" class="w-8 h-8 rounded-full bg-white shadow-sm border border-slate-200 text-slate-700 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <div>
+            <h1 id="detailVenueName" class="text-sm font-bold text-slate-900 leading-tight">Maison Marou Chocolate</h1>
+            <p id="detailVenueAddress" class="text-[10px] text-slate-500">168 Calmette, Nguyen Thai Binh Ward, District 1, HCMC</p>
+          </div>
+        </div>
+
+        <!-- Photo Gallery Grid -->
+        <div class="grid grid-cols-2 gap-2 rounded-2xl overflow-hidden shadow-sm">
+          <img src="https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?auto=format&fit=crop&w=600&q=80" alt="Marou Chocolate" class="w-full h-32 object-cover rounded-xl">
+          <img src="https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=600&q=80" alt="Marou Treats" class="w-full h-32 object-cover rounded-xl">
+        </div>
+
+        <!-- Authentic Menu Items -->
+        <div class="space-y-2">
+          <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Authentic Menu Items</span>
+
+          <div class="space-y-2" id="menuItemsContainer">
+            <!-- Item 1 -->
+            <div class="bg-white rounded-xl p-3 border border-slate-100 flex items-center justify-between gap-2.5 shadow-sm">
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <h4 class="text-xs font-bold text-slate-800">Dark Chocolate Tartlet</h4>
+                  <span class="text-[10px] bg-purple-50 text-purple-700 font-bold px-1.5 py-0.5 rounded">85,000 VND</span>
+                </div>
+                <p class="text-[10px] text-slate-500 leading-tight">Single origin dark chocolate ganache in buttery artisan tart shell</p>
+              </div>
+              <img src="https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=200&q=80" class="w-14 h-14 rounded-lg object-cover flex-shrink-0">
+            </div>
+
+            <!-- Item 2 -->
+            <div class="bg-white rounded-xl p-3 border border-slate-100 flex items-center justify-between gap-2.5 shadow-sm">
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <h4 class="text-xs font-bold text-slate-800">Matcha Green Layer Cake</h4>
+                  <span class="text-[10px] bg-purple-50 text-purple-700 font-bold px-1.5 py-0.5 rounded">75,000 VND</span>
+                </div>
+                <p class="text-[10px] text-slate-500 leading-tight">Uji matcha sponge cake layered with fresh whipped Japanese cream</p>
+              </div>
+              <img src="https://images.unsplash.com/photo-1579306194872-6463b7baa19b?auto=format&fit=crop&w=200&q=80" class="w-14 h-14 rounded-lg object-cover flex-shrink-0">
+            </div>
+
+            <!-- Item 3 -->
+            <div class="bg-white rounded-xl p-3 border border-slate-100 flex items-center justify-between gap-2.5 shadow-sm">
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <h4 class="text-xs font-bold text-slate-800">Signature Marou Mocha</h4>
+                  <span class="text-[10px] bg-purple-50 text-purple-700 font-bold px-1.5 py-0.5 rounded">90,000 VND</span>
+                </div>
+                <p class="text-[10px] text-slate-500 leading-tight">Lam Dong Arabica espresso blended with Maison Marou 65% dark chocolate</p>
+              </div>
+              <img src="https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=200&q=80" class="w-14 h-14 rounded-lg object-cover flex-shrink-0">
+            </div>
+          </div>
+        </div>
+
+        <!-- Back to Matches Button -->
+        <div class="pt-2">
+          <button onclick="navigateToScreen(5)" class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition">
+            <i class="fa-solid fa-arrow-left mr-1.5"></i>
+            <span>Back to Top Matches</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SCREEN 7: GROUP VOTE                       -->
+      <!-- ========================================== -->
+      <section id="screen-7" class="screen-view p-4 space-y-3.5">
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-1">
+          <div class="flex items-center space-x-2">
+            <button onclick="navigateToScreen(5)" class="w-8 h-8 rounded-full bg-white shadow-sm border border-slate-200 text-slate-700 flex items-center justify-center text-xs">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <div>
+              <h1 class="text-sm font-bold text-slate-900 leading-tight">Group Vote</h1>
+              <p class="text-[10px] text-slate-500">Select a venue to cast vote</p>
+            </div>
+          </div>
+          <button onclick="resetVotes()" class="text-xs text-purple-600 font-bold hover:underline flex items-center gap-1">
+            <i class="fa-solid fa-rotate-right text-[10px]"></i>
+            <span>Reset</span>
+          </button>
+        </div>
+
+        <!-- Mode Toggle: Pass & Vote vs Auto Simulation -->
+        <div class="bg-slate-200/80 p-1 rounded-xl flex text-xs font-bold">
+          <button id="btnModePass" onclick="setVotingMode('pass')" class="flex-1 py-1.5 rounded-lg bg-white text-purple-700 shadow-sm transition flex items-center justify-center gap-1">
+            <i class="fa-solid fa-user-group text-[10px]"></i>
+            <span>Pass & Vote</span>
+          </button>
+          <button id="btnModeSim" onclick="setVotingMode('sim')" class="flex-1 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center justify-center gap-1">
+            <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i>
+            <span>Auto Simulation</span>
+          </button>
+        </div>
+
+        <!-- Current Voter Turn Banner -->
+        <div class="bg-purple-50 border border-purple-200 rounded-xl p-2.5 flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <div id="voterAvatar" class="w-6 h-6 rounded-full bg-purple-600 text-white font-bold text-[10px] flex items-center justify-center">
+              Y
+            </div>
+            <div>
+              <span class="text-[9px] uppercase font-bold text-purple-500 block leading-none">Current Voter Turn</span>
+              <span id="voterName" class="text-xs font-bold text-purple-900">You</span>
+            </div>
+          </div>
+          <span id="voterStep" class="text-[10px] bg-purple-200/70 text-purple-800 font-bold px-2 py-0.5 rounded-md">Step 1/4</span>
+        </div>
+
+        <!-- Candidate Venues to Vote -->
+        <div class="space-y-2.5" id="votingOptionsContainer">
+          <!-- Populated dynamically with live vote counters -->
+        </div>
+
+        <!-- Instructions -->
+        <p class="text-[10px] text-center text-slate-400">
+          Tap any venue above to cast vote for current member.
+        </p>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SCREEN 8: FINAL DECISION (WINNER SELECTED) -->
+      <!-- ========================================== -->
+      <section id="screen-8" class="screen-view p-4 space-y-4">
+        <!-- Confetti Celebration Trophy Banner -->
+        <div class="bg-gradient-to-b from-purple-50 to-white rounded-3xl p-6 border border-purple-100 text-center space-y-3 shadow-sm">
+          <div class="w-16 h-16 mx-auto rounded-full bg-amber-100 border border-amber-200 flex items-center justify-center text-2xl text-amber-500 shadow-md animate-bounce">
+            <i class="fa-solid fa-trophy"></i>
+          </div>
+
+          <div>
+            <span class="text-[10px] bg-amber-50 text-amber-700 font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full border border-amber-200">
+              Winner Selected!
+            </span>
+            <h2 id="winnerName" class="text-lg font-black text-slate-900 mt-2">Maison Marou Chocolate</h2>
+            <p id="winnerAddress" class="text-xs text-slate-500 mt-0.5">168 Calmette, Nguyen Thai Binh Ward, District 1, HCMC</p>
+          </div>
+
+          <!-- Result Metrics -->
+          <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100 text-center">
+            <div class="bg-slate-50 p-2 rounded-xl">
+              <span class="text-[9px] uppercase font-bold text-slate-400 block">Votes Won</span>
+              <span id="winnerVotesWon" class="text-xs font-black text-purple-700">4 / 4 Votes</span>
+            </div>
+            <div class="bg-slate-50 p-2 rounded-xl">
+              <span class="text-[9px] uppercase font-bold text-slate-400 block">District Area</span>
+              <span class="text-xs font-black text-slate-800">District 1</span>
+            </div>
+            <div class="bg-slate-50 p-2 rounded-xl">
+              <span class="text-[9px] uppercase font-bold text-slate-400 block">Fairness</span>
+              <span class="text-[10px] font-black text-emerald-600 block mt-0.5">Optimal Midpoint</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="space-y-2 pt-2">
+          <button onclick="planAnotherMeetup()" class="btn-primary-gradient w-full py-3.5 rounded-xl text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg">
+            <i class="fa-solid fa-arrow-rotate-right"></i>
+            <span>Plan Another Meetup</span>
+          </button>
+          <a href="https://maps.google.com/?q=Maison+Marou+168+Calmette+District+1+HCMC" target="_blank" class="w-full py-3 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition">
+            <i class="fa-solid fa-map-location-dot text-purple-600"></i>
+            <span>Open in Google Maps</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SCREEN 9: SUPPORT & CONTACT                -->
+      <!-- ========================================== -->
+      <section id="screen-9" class="screen-view p-4 space-y-3.5">
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-1">
+          <div class="flex items-center space-x-2">
+            <button onclick="navigateToScreen(1)" class="w-8 h-8 rounded-full bg-white shadow-sm border border-slate-200 text-slate-700 flex items-center justify-center text-xs">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <h1 class="text-sm font-bold text-slate-900 leading-tight">Support & Contact</h1>
+          </div>
+          <span class="text-[10px] bg-purple-50 text-purple-700 font-bold px-2 py-0.5 rounded-full border border-purple-200">WEMEET</span>
+        </div>
+
+        <!-- Banner Card -->
+        <div class="bg-gradient-to-r from-purple-700 via-indigo-700 to-purple-600 rounded-2xl p-3.5 text-white shadow-md flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-lg">
+            <i class="fa-solid fa-headset"></i>
+          </div>
+          <div>
+            <h3 class="text-xs font-bold">User Support</h3>
+            <p class="text-[10px] text-purple-200">We are here to assist you 24/7</p>
+          </div>
+        </div>
+
+        <!-- Assistant Message Bubble -->
+        <div class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-100 space-y-1">
+          <span class="text-[10px] font-bold text-purple-600 uppercase tracking-wide">WEMEET Assistant</span>
+          <p class="text-xs text-slate-700 leading-relaxed">
+            Hi, Duy! 👋 Thank you for using WEMEET. How can we help you with your group outings today?
+          </p>
+        </div>
+
+        <!-- Quick Services -->
+        <div class="space-y-2">
+          <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Quick Services</span>
+
+          <div class="space-y-1.5">
+            <!-- Booking -->
+            <button onclick="sendQuickMessage('Booking & Contact')" class="w-full bg-white hover:bg-slate-50 p-3 rounded-xl border border-slate-100 flex items-center justify-between text-left transition shadow-sm">
+              <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-lg bg-pink-50 text-pink-600 flex items-center justify-center text-xs">
+                  <i class="fa-regular fa-calendar-check"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-slate-800">Booking & Contact</h4>
+                  <p class="text-[10px] text-slate-400">Reserve venues & contact hosts</p>
+                </div>
+              </div>
+              <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+            </button>
+
+            <!-- Terms -->
+            <button onclick="navigateToScreen(10)" class="w-full bg-white hover:bg-slate-50 p-3 rounded-xl border border-slate-100 flex items-center justify-between text-left transition shadow-sm">
+              <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs">
+                  <i class="fa-regular fa-file-lines"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-slate-800">Terms & Conditions</h4>
+                  <p class="text-[10px] text-slate-400">Platform rules & privacy policy</p>
+                </div>
+              </div>
+              <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+            </button>
+
+            <!-- Others -->
+            <button onclick="sendQuickMessage('Others & FAQs')" class="w-full bg-white hover:bg-slate-50 p-3 rounded-xl border border-slate-100 flex items-center justify-between text-left transition shadow-sm">
+              <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-xs">
+                  <i class="fa-regular fa-circle-question"></i>
+                </div>
+                <div>
+                  <h4 class="text-xs font-bold text-slate-800">Others & FAQs</h4>
+                  <p class="text-[10px] text-slate-400">General help & feedback</p>
+                </div>
+              </div>
+              <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Suggestion Pills -->
+        <div class="flex items-center space-x-2 pt-1">
+          <button onclick="sendQuickMessage('Booking inquiry')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold px-2.5 py-1 rounded-full transition">Booking</button>
+          <button onclick="navigateToScreen(10)" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold px-2.5 py-1 rounded-full transition">Terms</button>
+          <button onclick="sendQuickMessage('Help me calculate midpoint')" class="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold px-2.5 py-1 rounded-full transition">Midpoint Math</button>
+        </div>
+
+        <!-- Chat Input Bar -->
+        <div class="pt-2">
+          <form onsubmit="handleChatSubmit(event)" class="flex items-center gap-1.5 bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm">
+            <button type="button" class="w-8 h-8 rounded-xl text-slate-400 hover:text-slate-600 flex items-center justify-center text-xs">
+              <i class="fa-solid fa-plus"></i>
+            </button>
+            <input type="text" id="chatInput" placeholder="Enter your request here..." class="flex-1 text-xs bg-transparent focus:outline-none text-slate-800 placeholder:text-slate-400 px-1">
+            <button type="submit" class="w-8 h-8 rounded-xl bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center text-xs transition">
+              <i class="fa-solid fa-paper-plane"></i>
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- ========================================== -->
+      <!-- SCREEN 10: SERVICE TERMS (ĐIỀU KHOẢN DỊCH VỤ)-->
+      <!-- ========================================== -->
+      <section id="screen-10" class="screen-view p-4 space-y-3.5">
+        <!-- Header -->
+        <div class="flex items-center space-x-2 pb-1">
+          <button onclick="navigateToScreen(9)" class="w-8 h-8 rounded-full bg-white shadow-sm border border-slate-200 text-slate-700 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <h1 class="text-sm font-bold text-slate-900 leading-tight">Điều khoản dịch vụ</h1>
+        </div>
+
+        <!-- Metadata Box -->
+        <div class="bg-white rounded-2xl p-3 border border-slate-100 space-y-1 text-[11px] shadow-sm">
+          <div class="flex items-center text-slate-500 gap-1.5">
+            <i class="fa-regular fa-clock text-[10px]"></i>
+            <span>Phiên bản 1.0 • Ngày hiệu lực: 29/09/2026</span>
+          </div>
+          <p class="text-slate-600"><strong>Đơn vị vận hành:</strong> WEMEET Team</p>
+          <p class="text-slate-600"><strong>Email hỗ trợ:</strong> support@wemeet.vn</p>
+          <p class="text-slate-600"><strong>Địa chỉ:</strong> Thành phố Hồ Chí Minh, Việt Nam</p>
+        </div>
+
+        <!-- Terms Text Content -->
+        <div class="bg-white rounded-2xl p-3.5 border border-slate-100 space-y-3 text-xs text-slate-700 max-h-72 overflow-y-auto leading-relaxed shadow-sm">
+          <div>
+            <h4 class="font-bold text-slate-900 mb-1">1. CHẤP NHẬN ĐIỀU KHOẢN</h4>
+            <p class="text-[11px] text-slate-600">
+              Bằng việc truy cập, đăng ký tài khoản hoặc sử dụng WEMEET, bạn xác nhận đã đọc, hiểu và đồng ý với Điều khoản này. Việc sử dụng được thực hiện theo Luật Giao dịch điện tử số 20/2023/QH15.
+            </p>
+          </div>
+
+          <div>
+            <h4 class="font-bold text-slate-900 mb-1">2. MÔ TẢ DỊCH VỤ</h4>
+            <p class="text-[11px] text-slate-600 mb-1">
+              WEMEET là nền tảng hỗ trợ nhóm chọn địa điểm gặp mặt tại TP.HCM:
+            </p>
+            <ul class="text-[11px] text-slate-600 list-disc pl-4 space-y-0.5">
+              <li>Xử lý điểm xuất phát & tìm trung tâm</li>
+              <li>Ước tính khoảng cách, thời gian di chuyển</li>
+              <li>Gợi ý địa điểm F&B, giải trí phù hợp ngân sách</li>
+              <li>Tạo nhóm & bình chọn địa điểm</li>
+            </ul>
+            <p class="text-[10px] text-purple-600 italic mt-1">*Kết quả cung cấp mang tính chất tham khảo.</p>
+          </div>
+
+          <div>
+            <h4 class="font-bold text-slate-900 mb-1">3. BẢO MẬT & DỮ LIỆU ĐỊA ĐIỂM</h4>
+            <p class="text-[11px] text-slate-600">
+              Tọa độ địa lý của các thành viên chỉ được xử lý tạm thời để tính toán trọng tâm hình học (Centroid) và không bao giờ được chia sẻ cho bên thứ ba.
+            </p>
+          </div>
+        </div>
+
+        <!-- Checkbox & Accept Button -->
+        <div class="space-y-3 pt-1">
+          <label class="flex items-center space-x-2 text-xs text-slate-700 cursor-pointer">
+            <input type="checkbox" id="termsCheckbox" onchange="toggleTermsAccept(this)" class="w-4 h-4 text-purple-600 rounded border-slate-300 focus:ring-purple-500">
+            <span class="font-medium text-[11px]">Tôi đã đọc và đồng ý với Điều khoản dịch vụ</span>
+          </label>
+
+          <button id="btnAcceptTerms" onclick="acceptTermsAndContinue()" disabled class="w-full py-3.5 rounded-xl bg-slate-300 text-slate-500 font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-not-allowed">
+            <span>Đồng ý & Tiếp tục</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- ADD / EDIT MEMBER MODAL -->
+  <div id="memberModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between pb-1 border-b border-slate-100">
+        <h3 id="modalTitle" class="text-sm font-bold text-slate-900">Add Group Member</h3>
+        <button onclick="closeMemberModal()" class="w-7 h-7 rounded-full bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center text-xs">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-500 mb-1 uppercase text-[10px]">Member Name</label>
+          <input type="text" id="modalMemberName" placeholder="e.g. Linh, Nam, Duy" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500">
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-500 mb-1 uppercase text-[10px]">District</label>
+          <select id="modalMemberDistrict" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500">
+            <option value="District 1">District 1</option>
+            <option value="District 3">District 3</option>
+            <option value="District 5">District 5</option>
+            <option value="District 7">District 7</option>
+            <option value="District 10">District 10</option>
+            <option value="Binh Thanh">Binh Thanh</option>
+            <option value="Phu Nhuan">Phu Nhuan</option>
+            <option value="Tan Binh">Tan Binh</option>
+            <option value="Thu Duc">Thu Duc</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-500 mb-1 uppercase text-[10px]">Travel Mode</label>
+          <select id="modalMemberTravel" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500">
+            <option value="motorbike">🛵 Motorbike</option>
+            <option value="car">🚗 Car / Ride</option>
+            <option value="bus">🚌 Bus</option>
+            <option value="walk">🚶 Walk</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-2 pt-2">
+        <button id="btnDeleteMember" onclick="deleteCurrentMember()" class="hidden px-3 py-2.5 rounded-xl border border-rose-200 text-rose-600 font-bold text-xs hover:bg-rose-50 transition">
+          <i class="fa-regular fa-trash-can"></i>
+        </button>
+        <button onclick="saveMemberModal()" class="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs transition shadow-md shadow-purple-600/30">
+          Save Member
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
